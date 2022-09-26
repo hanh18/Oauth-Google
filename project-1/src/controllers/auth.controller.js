@@ -3,7 +3,8 @@ const { User } = require('../models/index');
 const getPage = async (req, res, next) => {
   try {
     const users = await User.findAll();
-    res.status(200).json({ message: "Success", users});
+    // res.status(200).json({ message: "Success", users});
+    res.render("pages/auth.ejs")
   } catch (error) {
     next(error);
   }
