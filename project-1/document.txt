@@ -1,0 +1,6 @@
+https://www.loginradius.com/blog/engineering/google-authentication-with-nodejs-and-passportjs/
+https://kb.pavietnam.vn/huong-dan-tao-ung-dung-oauth-client-id-google.html
+https://console.cloud.google.com/apis/api/plus.googleapis.com/quotas?project=miii-363704
+https://www.passportjs.org/packages/passport-google-oauth2/
+https://github.com/gasparrobi/node-google-oauth2-jwt/blob/master/app.js
+https://dev.to/adefam/create-update-add-and-delete-sequelize-migration-eoa
