@@ -65,7 +65,7 @@ const SERVER_ROOT_URI = `http://localhost:${port}`
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  `http://localhost:4000/oauth2callback`
+  `http://localhost:4000/oauth2callback`,
 );
 
 google.options({auth: oauth2Client});
@@ -109,13 +109,54 @@ app.get("/oauth2callback", async (req, res) => {
   const infoToken = await oauth2Client.getTokenInfo(tokens.access_token)
   const infoUser = await oauth2Client.verifyIdToken({ idToken: tokens.id_token })
 
-  res.cookie("accessToken", tokens.access_token)
+  res.cookie("accessToken", {
+    accessToken: tokens.access_token,
+    idToken: tokens.id_token
+  })
 
   return res.json({tokens, infoToken, infoUser})
 })
 
 
+// Other URL
+const isLogin = async (req, res, next) => {
+  try {
+    const {accessToken} = req.cookies.accessToken;
 
+    if(!accessToken) {
+      return next('Something went wrong!');
+    }
+
+    // const infoUser = await oauth2Client.verifyIdToken({ idToken })
+
+    const isExpired = oauth2Client.isTokenExpiring()
+    if(isExpired) {
+      res.redirect('/login');
+    }
+
+    const infoToken = await oauth2Client.getTokenInfo(accessToken)
+    console.log(infoToken)
+
+    req.user = infoToken.email;
+    next();
+  } catch (error) {
+    next(error)
+  }
+}
+
+app.use('/user/profile', isLogin, async (req, res, next) => {
+  try {
+    const user = req.user;
+    console.log(user);
+
+    return res.json({user, data: "this is data user info get from database"})
+  } catch (error) {
+    next(error)
+  }
+})
+
+
+// Handle error
 app.use((err, req, res, next) => {
   console.log(err);
   res.status(500).json({ message: err.message });
