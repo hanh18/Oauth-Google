@@ -6,9 +6,9 @@ const queryString = require('query-string');
 const cors = require("cors");
 const { google } = require("googleapis");
 
-require("dotenv").config();
+const { User } = require("../src/models/index");
 
-const config = require('./config/configServer');
+require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -70,6 +70,14 @@ const oauth2Client = new google.auth.OAuth2(
 
 google.options({auth: oauth2Client});
 
+// oauth2Client.on('tokens', (tokens) => {
+//   if (tokens.refresh_token) {
+//     // store the refresh_token in my database!
+//     console.log(tokens.refresh_token);
+//   }
+//   console.log(tokens.access_token);
+// });
+
 function getGoogleAuthURL() {
   /*
    * Generate a url that asks permissions to the user's email and profile
@@ -94,20 +102,44 @@ app.get("/login", (req, res) => {
 })
 
 app.get("/auth/google/url", (req, res) => {
-  return res.redirect(getGoogleAuthURL())
-  // return res.send(getGoogleAuthURL());
+  return res.redirect(getGoogleAuthURL());
 })
 
 app.get("/oauth2callback", async (req, res) => {
-  console.log(req.query)
+  // console.log(req.query)
   const { tokens } = await oauth2Client.getToken(req.query.code); 
   oauth2Client.credentials = tokens;
-
-  console.log(tokens.access_token)
-  console.log(oauth2Client.isTokenExpiring())
-
+  
   const infoToken = await oauth2Client.getTokenInfo(tokens.access_token)
   const infoUser = await oauth2Client.verifyIdToken({ idToken: tokens.id_token })
+
+  const lastName = infoUser.payload.family_name;
+  const firstName = infoUser.payload.given_name;
+  const verify = infoUser.payload.email_verified;
+  const { email, picture } = infoUser.payload;
+
+  console.log(email)
+
+  const existUser = await User.findOne({
+    where: {
+      email
+    }
+  })
+
+  if(!existUser) {
+    // create new user
+    await User.create({ firstName, lastName, email, picture, verify });
+  } else {
+    // user exist, update info user
+    await User.update(
+      {
+        firstName, lastName, email, picture, verify
+      },
+      {
+        where: { email },
+      }
+    )
+  }
 
   res.cookie("accessToken", {
     accessToken: tokens.access_token,
@@ -121,21 +153,24 @@ app.get("/oauth2callback", async (req, res) => {
 // Other URL
 const isLogin = async (req, res, next) => {
   try {
-    const {accessToken} = req.cookies.accessToken;
-
-    if(!accessToken) {
-      return next('Something went wrong!');
+    if(!req.cookies.accessToken) {
+      return next(new Error('Something went wrong! Please login!'));
     }
+
+    const { accessToken } = req.cookies.accessToken;
 
     // const infoUser = await oauth2Client.verifyIdToken({ idToken })
-
+    
     const isExpired = oauth2Client.isTokenExpiring()
     if(isExpired) {
-      res.redirect('/login');
+      return res.redirect('/login');
     }
 
-    const infoToken = await oauth2Client.getTokenInfo(accessToken)
-    console.log(infoToken)
+    if(Object.keys(oauth2Client.credentials).length === 0) {  
+      return res.redirect('/login');
+    }
+
+    const infoToken = await oauth2Client.getTokenInfo(accessToken);
 
     req.user = infoToken.email;
     next();
@@ -146,10 +181,16 @@ const isLogin = async (req, res, next) => {
 
 app.use('/user/profile', isLogin, async (req, res, next) => {
   try {
-    const user = req.user;
-    console.log(user);
+    const email = req.user;
+    console.log(email);
 
-    return res.json({user, data: "this is data user info get from database"})
+    const profile = await User.findOne({
+      where: {
+        email
+      }
+    })
+
+    return res.json({ profile })
   } catch (error) {
     next(error)
   }
