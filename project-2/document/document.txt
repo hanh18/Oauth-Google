@@ -1,0 +1,3 @@
+https://developers.google.com/identity/oauth2/web/guides/overview
+https://github.com/googleapis/google-api-nodejs-client
+https://tomanagle.medium.com/google-oauth-with-node-js-4bff90180fe6

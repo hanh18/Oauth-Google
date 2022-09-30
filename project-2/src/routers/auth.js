@@ -1,0 +1,17 @@
+const { Router } = require("express");
+const router = Router();
+
+const { getGoogleAuthURL, oauth2callback, isLogin } = require("../middleware/oauth");
+
+
+router.get('/login', (req, res) => {
+  return res.redirect(getGoogleAuthURL());
+})
+
+router.get("/auth/google/url", (req, res) => {
+  return res.redirect(getGoogleAuthURL());
+})
+
+router.get("/oauth2callback", oauth2callback)
+
+module.exports = router;
