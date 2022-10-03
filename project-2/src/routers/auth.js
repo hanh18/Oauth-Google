@@ -1,7 +1,7 @@
 const { Router } = require("express");
 const router = Router();
 
-const { getGoogleAuthURL, oauth2callback, isLogin } = require("../middleware/oauth");
+const { getGoogleAuthURL, oauth2callback, refreshToken } = require("../middleware/oauth");
 
 
 router.get('/login', (req, res) => {
@@ -13,5 +13,7 @@ router.get("/auth/google/url", (req, res) => {
 })
 
 router.get("/oauth2callback", oauth2callback)
+
+router.get("/refresh", refreshToken)
 
 module.exports = router;

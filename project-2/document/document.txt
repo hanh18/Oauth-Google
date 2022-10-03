@@ -1,3 +1,8 @@
 https://developers.google.com/identity/oauth2/web/guides/overview
 https://github.com/googleapis/google-api-nodejs-client
 https://tomanagle.medium.com/google-oauth-with-node-js-4bff90180fe6
+https://developers.google.com/identity/protocols/oauth2
+https://developers.google.com/identity/protocols/oauth2/scopes
+
+https://www.youtube.com/watch?v=cvRCVMFTbBM
+https://stackoverflow.com/questions/61204084/nodejs-how-to-get-new-token-with-refresh-token-using-google-api
