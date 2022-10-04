@@ -1,0 +1,34 @@
+const queryString = require('query-string');
+// Code for login with Google (option 1)
+
+const redirectURI = "auth/google";
+const SERVER_ROOT_URI = `http://localhost:${port}`
+
+// Getting login URL
+function getGoogleAuthURL() {
+  const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
+  const options = {
+    redirect_uri: `${SERVER_ROOT_URI}/${redirectURI}`,
+    client_id: process.env.GOOGLE_CLIENT_ID,
+    access_type: "offline",
+    response_type: "code",
+    prompt: "consent",
+    scope: [
+      'https://www.googleapis.com/auth/userinfo.profile',
+      'https://www.googleapis.com/auth/userinfo.email',
+    ].join(' '),
+  };
+
+  return `${rootUrl}?${queryString.stringify(options)}`;
+}
+
+console.log(`${SERVER_ROOT_URI}${redirectURI}`);
+console.log(process.env.GOOGLE_CLIENT_ID);
+
+app.get("/auth/google/url", (req, res) => {
+  return res.send(getGoogleAuthURL());
+})
+
+// Getting the user from Google with the code
+
+// Getting the current user
